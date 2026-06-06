@@ -20,6 +20,9 @@ app.use('/api', versionRoutes);
 import annotationRoutes from './routes/annotations.js';
 app.use('/api', annotationRoutes);
 
+import commentRoutes from './routes/comments.js';
+app.use('/api', commentRoutes);
+
 // 全局错误处理
 app.use((err, req, res, next) => {
   const status = err.statusCode || err.status || 500;
