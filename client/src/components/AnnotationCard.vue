@@ -1,5 +1,5 @@
 <template>
-  <div class="border rounded p-3 mb-2 cursor-pointer hover:border-blue-300 transition-colors" @click="$emit('click')">
+  <div class="border rounded p-3 mb-2 cursor-pointer transition-colors" :class="active ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'" @click="$emit('click')">
     <div class="flex items-center gap-2 mb-1">
       <span class="w-3 h-3 rounded-full inline-block" :style="{ backgroundColor: annotation.color }"></span>
       <span class="text-xs font-bold text-gray-600">#{{ number }}</span>
@@ -14,5 +14,6 @@
 defineProps({
   annotation: { type: Object, required: true },
   number: { type: Number, default: 0 },
+  active: { type: Boolean, default: false },
 })
 </script>

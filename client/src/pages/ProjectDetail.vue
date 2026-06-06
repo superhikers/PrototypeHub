@@ -50,29 +50,35 @@
 
       <!-- 右栏 -->
       <aside class="w-80 border-l bg-white overflow-y-auto shrink-0">
-        <div v-if="!annotationStore.selected" class="p-4">
-          <h3 class="font-bold text-sm mb-3">标注列表</h3>
-          <div v-if="annotationStore.list.length === 0" class="text-sm text-gray-400">暂无标注</div>
+        <div class="p-4">
+          <h3 class="font-bold text-sm mb-3">
+            标注列表
+            <span class="text-xs font-normal text-gray-400 ml-1">({{ annotationStore.list.length }})</span>
+          </h3>
+
+          <!-- 选中标注的详情 + 评论 -->
+          <div v-if="annotationStore.selected" class="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-3 h-3 rounded-full inline-block" :style="{ backgroundColor: annotationStore.selected.color }"></span>
+              <span class="text-xs font-bold">#{{ selectedNumber }}</span>
+              <span class="text-xs text-gray-500">{{ annotationStore.selected.author }}</span>
+              <span class="text-xs text-gray-400">{{ new Date(annotationStore.selected.created_at).toLocaleString() }}</span>
+            </div>
+            <p class="text-sm whitespace-pre-wrap mb-2">{{ annotationStore.selected.content }}</p>
+            <CommentThread :annotation-id="annotationStore.selected.id" />
+          </div>
+
+          <!-- 标注列表 -->
+          <div v-if="annotationStore.list.length === 0" class="text-sm text-gray-400 py-4 text-center">
+            暂无标注
+          </div>
           <AnnotationCard
             v-for="(a, idx) in annotationStore.sortedList" :key="a.id"
             :annotation="a"
             :number="idx + 1"
+            :active="annotationStore.selected?.id === a.id"
             @click="selectAnnotation(a)"
           />
-        </div>
-        <div v-else class="p-4">
-          <button class="text-sm text-blue-600 hover:underline mb-3" @click="annotationStore.clearSelection()">
-            ← 返回列表
-          </button>
-          <div class="mb-4">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="w-3 h-3 rounded-full inline-block" :style="{ backgroundColor: annotationStore.selected.color }"></span>
-              <span class="text-xs text-gray-500">{{ annotationStore.selected.author }}</span>
-              <span class="text-xs text-gray-400">{{ new Date(annotationStore.selected.created_at).toLocaleString() }}</span>
-            </div>
-            <p class="text-sm whitespace-pre-wrap">{{ annotationStore.selected.content }}</p>
-          </div>
-          <CommentThread :annotation-id="annotationStore.selected.id" />
         </div>
       </aside>
     </div>
@@ -100,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
@@ -180,6 +186,11 @@ async function onDeleteAnnotation(a) {
   if (!confirm('确定删除此标注？')) return
   await annotationStore.deleteAnnotation(versionStore.current.id, a.id)
 }
+
+const selectedNumber = computed(() => {
+  const idx = annotationStore.sortedList.findIndex(a => a.id === annotationStore.selected?.id)
+  return idx >= 0 ? idx + 1 : 0
+})
 
 function selectAnnotation(a) {
   annotationStore.selectAnnotation(a)
