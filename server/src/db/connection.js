@@ -8,6 +8,7 @@ export function getDb() {
     db = new Database(config.dbPath);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+    db.pragma('wal_autocheckpoint = 100');
   }
   return db;
 }
