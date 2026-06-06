@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/vitest run"
+    "test": "vitest run"
   },
   "dependencies": {
     "better-sqlite3": "^11.0.0",
