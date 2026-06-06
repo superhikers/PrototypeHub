@@ -60,7 +60,6 @@ export function initDb() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_project_number ON prototype_versions(project_id, version_number);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_settings_project ON settings(project_id);
     CREATE INDEX IF NOT EXISTS idx_folders_project ON folders(project_id);
 
@@ -79,4 +78,6 @@ export function initDb() {
 
   try { db.exec('ALTER TABLE prototype_versions ADD COLUMN folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL'); } catch (e) { /* column may already exist */ }
   try { db.exec('ALTER TABLE prototype_versions ADD COLUMN prototype_id TEXT REFERENCES prototypes(id) ON DELETE CASCADE'); } catch (e) { /* may already exist */ }
+  try { db.exec('DROP INDEX IF EXISTS idx_versions_project_number'); } catch (e) { /* may not exist */ }
+  try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_prototype_number ON prototype_versions(prototype_id, version_number)'); } catch (e) { /* may fail if data has null prototype_id */ }
 }
