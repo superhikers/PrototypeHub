@@ -64,7 +64,26 @@
               <span class="text-xs text-gray-500">{{ annotationStore.selected.author }}</span>
               <span class="text-xs text-gray-400">{{ new Date(annotationStore.selected.created_at).toLocaleString() }}</span>
             </div>
-            <p class="text-sm whitespace-pre-wrap mb-2">{{ annotationStore.selected.content }}</p>
+            <div>
+              <p v-if="editingAnnoId !== annotationStore.selected.id"
+                class="text-sm whitespace-pre-wrap mb-2 cursor-pointer hover:bg-blue-100 rounded px-1 -mx-1"
+                @click="startEdit">
+                {{ annotationStore.selected.content || '（点击添加内容）' }}
+              </p>
+              <div v-else class="mb-2">
+                <textarea v-model="editContent"
+                  class="w-full border rounded px-2 py-1 text-sm"
+                  rows="3" ref="editInput"
+                  @blur="saveEdit"
+                  @keydown.escape="cancelEdit"
+                  @keydown.ctrl.enter="saveEdit">
+                </textarea>
+                <div class="flex gap-1 mt-1">
+                  <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" @click="saveEdit">保存</button>
+                  <button class="text-xs text-gray-600 hover:underline px-2 py-1" @click="cancelEdit">取消</button>
+                </div>
+              </div>
+            </div>
             <button class="text-xs text-blue-600 hover:underline" @click="showComments = !showComments">
               {{ showComments ? '收起评论' : '查看评论' }}
             </button>
@@ -147,6 +166,27 @@ const showCreateDialog = ref(false)
 const pendingPos = ref({ x: 0, y: 0 })
 const newContent = ref('')
 const newColor = ref(COLORS[1])
+
+const editingAnnoId = ref(null)
+const editContent = ref('')
+const editInput = ref(null)
+
+function startEdit() {
+  editContent.value = annotationStore.selected.content
+  editingAnnoId.value = annotationStore.selected.id
+  setTimeout(() => editInput.value?.focus(), 50)
+}
+
+async function saveEdit() {
+  if (editingAnnoId.value && editContent.value !== annotationStore.selected.content) {
+    await annotationStore.updateAnnotation(versionStore.current.id, editingAnnoId.value, { content: editContent.value })
+  }
+  editingAnnoId.value = null
+}
+
+function cancelEdit() {
+  editingAnnoId.value = null
+}
 
 onMounted(async () => {
   await projectStore.fetchProject(route.params.id)
