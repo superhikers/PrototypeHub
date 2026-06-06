@@ -1,53 +1,90 @@
 <template>
-  <div class="max-w-5xl mx-auto p-6">
+  <div class="min-h-screen bg-[var(--c-bg)]">
     <AuthorModal @confirmed="refresh" />
 
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">项目列表</h1>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-500">{{ author }}</span>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" @click="showNewDialog = true">
-          + 新建项目
-        </button>
+    <!-- Header -->
+    <header class="border-b border-[var(--c-border)] bg-[var(--c-surface)]/80 backdrop-blur-sm sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <h1 class="text-2xl font-display text-[var(--c-text)] tracking-tight">PrototypeHub</h1>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-[var(--c-text-secondary)] hidden sm:block">{{ author }}</span>
+          <BaseButton size="sm" variant="ghost" @click="ui.toggleDarkMode()">
+            <span>{{ ui.darkMode ? '☀️' : '🌙' }}</span>
+          </BaseButton>
+          <BaseButton @click="showCreate = true">+ 新建项目</BaseButton>
+        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- 新建项目弹窗 -->
-    <div v-if="showNewDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-      <div class="bg-white rounded-lg p-6 w-96 shadow-xl">
-        <h2 class="text-lg font-bold mb-4">新建项目</h2>
-        <input v-model="newName" class="w-full border rounded px-3 py-2 mb-3" placeholder="项目名称" autofocus />
-        <textarea v-model="newDesc" class="w-full border rounded px-3 py-2 mb-4" placeholder="项目描述（可选）" rows="3"></textarea>
-        <div class="flex justify-end gap-2">
-          <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded" @click="showNewDialog = false">取消</button>
-          <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50" :disabled="!newName.trim()" @click="createProject">创建</button>
+    <!-- Loading State -->
+    <div v-if="loading" class="max-w-7xl mx-auto px-6 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div v-for="n in 6" :key="n" class="bg-[var(--c-surface)] border border-[var(--c-border)] rounded-[var(--radius-lg)] p-5">
+          <BaseSkeleton height="20px" width="60%" class="mb-3" />
+          <BaseSkeleton height="14px" width="80%" class="mb-2" />
+          <BaseSkeleton height="14px" width="40%" />
         </div>
       </div>
     </div>
 
-    <!-- 项目列表 -->
-    <div v-if="store.loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="store.list.length === 0" class="text-center py-12 text-gray-400">
-      还没有项目，点击"新建项目"开始
-    </div>
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div
-        v-for="p in store.list" :key="p.id"
-        class="bg-white rounded-lg border p-4 cursor-pointer hover:shadow-md transition-shadow relative group"
-        @click="$router.push(`/project/${p.id}`)"
+    <!-- Project Grid -->
+    <div v-else class="max-w-7xl mx-auto px-6 py-8">
+      <TransitionGroup
+        v-if="store.list.length"
+        name="project-card"
+        tag="div"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
       >
-        <button
-          class="absolute top-1 right-1 w-6 h-6 bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          @click.stop="doDeleteProject(p)"
-          title="删除项目"
-        >✕</button>
-        <h3 class="font-bold mb-1 truncate">{{ p.name }}</h3>
-        <p v-if="p.description" class="text-sm text-gray-500 mb-2 truncate">{{ p.description }}</p>
-        <div class="text-xs text-gray-400">
-          {{ p.updated_at ? new Date(p.updated_at).toLocaleString() : '' }}
+        <div
+          v-for="(project, idx) in store.list" :key="project.id"
+          :style="{ '--delay': idx * 0.06 + 's' }"
+          class="project-card-item"
+          @click="goProject(project.id)"
+        >
+          <BaseCard hoverable padding="lg" class="h-full flex flex-col justify-between">
+            <div>
+              <h3 class="text-lg font-body font-semibold text-[var(--c-text)] mb-1.5">{{ project.name }}</h3>
+              <p class="text-sm text-[var(--c-text-secondary)] line-clamp-2">{{ project.description || '暂无描述' }}</p>
+            </div>
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-[var(--c-border-light)]">
+              <span class="text-xs text-[var(--c-text-muted)]">{{ project.prototype_count || 0 }} 个原型</span>
+              <BaseButton variant="ghost" size="sm" @click.stop="confirmDelete(project)">
+                <span class="text-[var(--c-danger)]">删除</span>
+              </BaseButton>
+            </div>
+          </BaseCard>
         </div>
+      </TransitionGroup>
+
+      <!-- Empty State -->
+      <div v-else class="text-center py-24">
+        <div class="text-5xl mb-4 opacity-30">📐</div>
+        <p class="text-lg font-display text-[var(--c-text-secondary)] mb-2">还没有项目</p>
+        <p class="text-sm text-[var(--c-text-muted)] mb-6">创建一个新项目开始原型审查</p>
+        <BaseButton @click="showCreate = true">+ 新建项目</BaseButton>
       </div>
     </div>
+
+    <!-- Create Modal -->
+    <BaseModal v-model="showCreate" title="新建项目">
+      <div class="flex flex-col gap-4">
+        <BaseInput v-model="newName" label="项目名称" placeholder="输入项目名称" />
+        <BaseInput v-model="newDesc" label="项目描述" placeholder="简短描述（可选）" />
+      </div>
+      <template #footer>
+        <BaseButton variant="secondary" @click="showCreate = false">取消</BaseButton>
+        <BaseButton :loading="creating" :disabled="!newName.trim()" @click="handleCreate">创建</BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- Delete Confirm Modal -->
+    <BaseModal v-model="showDelete" title="删除项目">
+      <p class="text-[var(--c-text-secondary)]">确定要删除「{{ deleteTarget?.name }}」吗？此操作不可撤销。</p>
+      <template #footer>
+        <BaseButton variant="secondary" @click="showDelete = false">取消</BaseButton>
+        <BaseButton variant="danger" :loading="deleting" @click="handleDelete">删除</BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -55,33 +92,75 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/projectStore'
+import { useUiStore } from '../stores/uiStore'
 import { getAuthor } from '../utils/author'
 import AuthorModal from '../components/AuthorModal.vue'
+import BaseButton from '../components/base/BaseButton.vue'
+import BaseCard from '../components/base/BaseCard.vue'
+import BaseModal from '../components/base/BaseModal.vue'
+import BaseInput from '../components/base/BaseInput.vue'
+import BaseSkeleton from '../components/base/BaseSkeleton.vue'
 
 const router = useRouter()
 const store = useProjectStore()
+const ui = useUiStore()
 const author = ref(getAuthor())
-const showNewDialog = ref(false)
+
+const loading = ref(true)
+const showCreate = ref(false)
+const showDelete = ref(false)
+const creating = ref(false)
+const deleting = ref(false)
 const newName = ref('')
 const newDesc = ref('')
+const deleteTarget = ref(null)
+
+onMounted(async () => {
+  if (getAuthor()) {
+    await store.fetchProjects()
+  }
+  loading.value = false
+})
 
 function refresh() { author.value = getAuthor() }
 
-onMounted(() => {
-  if (getAuthor()) store.fetchProjects()
-})
+function goProject(id) {
+  router.push(`/project/${id}`)
+}
 
-async function createProject() {
+async function handleCreate() {
   if (!newName.value.trim()) return
+  creating.value = true
   const project = await store.createProject({ name: newName.value.trim(), description: newDesc.value.trim() })
-  showNewDialog.value = false
+  creating.value = false
+  showCreate.value = false
   newName.value = ''
   newDesc.value = ''
   if (project) router.push(`/project/${project.id}`)
 }
 
-async function doDeleteProject(p) {
-  if (!confirm(`确定删除项目「${p.name}」？将同时删除所有版本和标注`)) return
-  await store.deleteProject(p.id)
+function confirmDelete(project) {
+  deleteTarget.value = project
+  showDelete.value = true
+}
+
+async function handleDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  await store.deleteProject(deleteTarget.value.id)
+  deleting.value = false
+  showDelete.value = false
+  deleteTarget.value = null
 }
 </script>
+
+<style scoped>
+.project-card-item {
+  animation: projectCardIn 0.4s ease-out both;
+  animation-delay: var(--delay);
+}
+@keyframes projectCardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

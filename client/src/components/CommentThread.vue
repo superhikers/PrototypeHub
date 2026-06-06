@@ -1,41 +1,39 @@
 <template>
   <div>
-    <h4 class="font-bold text-sm mb-3">评论</h4>
-
-    <div v-if="store.loading" class="text-sm text-gray-400">加载中...</div>
+    <div v-if="store.loading" class="text-sm text-[var(--c-text-muted)]">加载中...</div>
 
     <div v-else class="space-y-3 mb-4">
-      <div v-for="c in store.comments" :key="c.id" class="text-sm">
-        <div class="flex items-center gap-2 mb-1">
-          <span class="font-medium">{{ c.author }}</span>
-          <span class="text-xs text-gray-400">{{ new Date(c.created_at).toLocaleString() }}</span>
-        </div>
-        <p class="text-gray-700 whitespace-pre-wrap ml-0">{{ c.content }}</p>
-        <button class="text-xs text-blue-600 hover:underline mt-1" @click="replyTo = replyTo === c.id ? null : c.id">
-          {{ replyTo === c.id ? '取消回复' : '回复' }}
-        </button>
-        <div v-if="replyTo === c.id" class="ml-4 mt-2 flex gap-1">
-          <input v-model="replyContent" class="flex-1 border rounded px-2 py-1 text-xs" placeholder="输入回复..." @keyup.enter="addReply(c.id)" />
-          <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 disabled:opacity-50"
-            :disabled="!replyContent.trim() || !author" @click="addReply(c.id)">发送</button>
-        </div>
-        <div v-for="child in children(c.id)" :key="child.id" class="ml-4 mt-2 p-2 bg-gray-50 rounded">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="font-medium text-xs">{{ child.author }}</span>
-            <span class="text-xs text-gray-400">{{ new Date(child.created_at).toLocaleString() }}</span>
+      <TransitionGroup name="comment" tag="div" class="space-y-2">
+        <div v-for="c in store.comments" :key="c.id" class="text-sm">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-xs font-medium text-[var(--c-text)]">{{ c.author }}</span>
+            <span class="text-xs text-[var(--c-text-muted)]">{{ new Date(c.created_at).toLocaleString() }}</span>
           </div>
-          <p class="text-xs text-gray-700">{{ child.content }}</p>
+          <p class="text-sm text-[var(--c-text-secondary)] whitespace-pre-wrap">{{ c.content }}</p>
+          <button class="text-xs text-[var(--c-text-secondary)] hover:text-[var(--c-text)] transition-colors mt-0.5" @click="replyTo = replyTo === c.id ? null : c.id">
+            {{ replyTo === c.id ? '取消回复' : '回复' }}
+          </button>
+          <div v-if="replyTo === c.id" class="ml-4 mt-1.5 flex gap-1.5">
+            <input v-model="replyContent" class="flex-1 px-2.5 py-1.5 text-xs bg-[var(--c-surface)] border border-[var(--c-border)] rounded-[var(--radius-sm)] text-[var(--c-text)] placeholder-[var(--c-text-muted)] outline-none focus:border-[var(--c-primary)] focus:ring-2 focus:ring-[var(--c-primary)]/20 transition-all" placeholder="输入回复..." @keyup.enter="addReply(c.id)" />
+            <BaseButton size="sm" :disabled="!replyContent.trim() || !author" @click="addReply(c.id)">发送</BaseButton>
+          </div>
+          <TransitionGroup name="comment" tag="div" class="ml-4 mt-1.5 space-y-1.5">
+            <div v-for="child in children(c.id)" :key="child.id" class="p-2 bg-[var(--c-surface-hover)] rounded-[var(--radius-sm)] border border-[var(--c-border-light)]">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-xs font-medium text-[var(--c-text)]">{{ child.author }}</span>
+                <span class="text-xs text-[var(--c-text-muted)]">{{ new Date(child.created_at).toLocaleString() }}</span>
+              </div>
+              <p class="text-xs text-[var(--c-text-secondary)]">{{ child.content }}</p>
+            </div>
+          </TransitionGroup>
         </div>
-      </div>
+      </TransitionGroup>
     </div>
 
-    <!-- 新评论输入 -->
-    <div>
-      <textarea v-model="newComment" class="w-full border rounded px-3 py-2 text-sm mb-2" rows="2" placeholder="添加评论..."></textarea>
-      <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
-        :disabled="!newComment.trim() || !author" @click="addComment">
-        发送
-      </button>
+    <!-- New Comment Input -->
+    <div class="flex gap-2">
+      <input v-model="newComment" class="flex-1 px-3 py-1.5 text-sm bg-[var(--c-surface)] border border-[var(--c-border)] rounded-[var(--radius-sm)] text-[var(--c-text)] placeholder-[var(--c-text-muted)] outline-none focus:border-[var(--c-primary)] focus:ring-2 focus:ring-[var(--c-primary)]/20 transition-all" rows="1" placeholder="添加评论..." @keydown.enter="addComment" />
+      <BaseButton size="sm" :disabled="!newComment.trim() || !author" @click="addComment">发送</BaseButton>
     </div>
   </div>
 </template>
@@ -44,6 +42,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useCommentStore } from '../stores/commentStore'
 import { getAuthor } from '../utils/author'
+import BaseButton from '../components/base/BaseButton.vue'
 
 const props = defineProps({ annotationId: { type: String, required: true } })
 const store = useCommentStore()
@@ -73,3 +72,19 @@ async function addReply(parentId) {
   replyTo.value = null
 }
 </script>
+
+<style scoped>
+.comment-enter-active {
+  transition: all 0.25s ease-out;
+}
+.comment-leave-active {
+  transition: all 0.2s ease-in;
+}
+.comment-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.comment-leave-to {
+  opacity: 0;
+}
+</style>

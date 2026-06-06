@@ -27,13 +27,13 @@
         </div>
       </div>
       <!-- 手型/标注模式 — 彩色圆点 -->
-      <div v-else class="relative" :style="{ width: '28px', height: '28px' }">
+      <div v-else class="relative annotation-dot" :style="{ width: '28px', height: '28px' }">
         <div class="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md"
           :style="{ backgroundColor: a.color }">
           {{ idx + 1 }}
         </div>
         <div v-if="mode === 'hand'" class="absolute -top-2 -right-2 hidden group-hover:block">
-          <button class="w-5 h-5 bg-white rounded-full shadow text-xs border hover:bg-gray-100" @click.stop="$emit('edit', a)">✎</button>
+          <button class="w-5 h-5 bg-white rounded-full shadow text-[10px] border hover:bg-gray-100" @click.stop="$emit('edit', a)">✎</button>
         </div>
       </div>
     </div>
@@ -90,3 +90,13 @@ function onDrop(e) {
   emit('drop', { x, y })
 }
 </script>
+
+<style scoped>
+.annotation-dot {
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 107, 107, 0); }
+}
+</style>

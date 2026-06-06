@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--c-primary);
+  color: white;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--c-border-light) 25%,
+    var(--c-surface-hover) 50%,
+    var(--c-border-light) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}

@@ -1,9 +1,11 @@
 <template>
-  <div class="flex items-center gap-1 bg-white rounded border text-xs">
+  <div class="flex bg-[var(--c-surface-hover)] rounded-[var(--radius-sm)] p-0.5 gap-0.5">
     <button
       v-for="r in resolutions" :key="r.key"
-      class="px-2 py-1 rounded transition-colors"
-      :class="ui.resolution === r.key ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'"
+      class="px-2.5 py-1 text-xs font-medium rounded-[var(--radius-sm)] transition-all duration-150"
+      :class="ui.resolution === r.key
+        ? 'bg-[var(--c-surface)] text-[var(--c-text)] shadow-soft'
+        : 'text-[var(--c-text-muted)] hover:text-[var(--c-text-secondary)]'"
       @click="ui.setResolution(r.key)"
     >
       {{ r.label }}
