@@ -36,6 +36,12 @@
           </button>
           <div class="flex-1"></div>
           <ResolutionSwitcher />
+          <!-- 便签盒（拖拽创建标注） -->
+          <div class="w-6 h-6 rounded-full bg-yellow-300 border-2 border-yellow-500 cursor-grab active:cursor-grabbing"
+            draggable="true"
+            @dragstart="onDragStart"
+            title="拖拽到原型上创建标注"
+          ></div>
         </div>
       </main>
 
@@ -165,4 +171,9 @@ async function onDeleteAnnotation(a) {
 }
 
 function selectAnnotation(a) { annotationStore.selectAnnotation(a) }
+
+function onDragStart(e) {
+  e.dataTransfer.setData('text/plain', 'new-annotation')
+  e.dataTransfer.effectAllowed = 'copy'
+}
 </script>

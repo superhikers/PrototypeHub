@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 overflow-auto relative" ref="container">
+  <div class="flex-1 overflow-auto relative" ref="container" @dragover.prevent @drop="onDrop">
     <div v-if="!version" class="flex items-center justify-center h-full text-gray-400 text-sm">
       暂无版本，请上传 HTML 文件
     </div>
@@ -65,6 +65,15 @@ function handleMessage(e) {
 function handleClick(pos) {
   if (props.mode === 'annotate') {
     emit('annotate', pos)
+  }
+}
+
+function onDrop(e) {
+  if (e.dataTransfer.getData('text/plain') === 'new-annotation') {
+    const rect = container.value.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    emit('annotate', { x, y })
   }
 }
 
