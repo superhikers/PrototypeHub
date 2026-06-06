@@ -13,7 +13,6 @@
         style="overflow: hidden;"
       ></iframe>
       <AnnotationLayer
-        v-if="annotations.length > 0"
         :annotations="annotations"
         :mode="mode"
         :container-width="containerWidth"
