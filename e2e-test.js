@@ -175,10 +175,53 @@ async function main() {
   assert(r10.status === 201, `上传成功`);
   assert(!r10.body.data.folder_id, `无文件夹`);
 
-  // 11. Final check
-  console.log('\n【11. 最终状态】');
-  const r11 = await req('GET', `/api/projects/${pid}/prototypes`);
-  assert(r11.body.data.length === 3, `共3个原型`);
+  // 11. Upload name冲突测试: 传"登录页.html"到文件夹2 → 应创建新原型（同名不同文件夹）
+  console.log('\n【11. 同名文件跨文件夹测试】');
+  const r11 = await req('POST', `/api/projects/${pid}/versions`, {
+    formData: [
+      { type: 'file', name: 'file', filename: '登录页.html', content: '<h1>文件夹2的登录页</h1>' },
+      { type: 'text', name: 'title', value: '登录页.html' },
+      { type: 'text', name: 'folder_id', value: folder2Id },
+    ]
+  });
+  assert(r11.status === 201, `上传成功`);
+  assert(r11.body.data.prototype_id !== p1Id, `与文件夹1的原型ID不同`);
+
+  const r11b = await req('GET', `/api/projects/${pid}/prototypes?folder_id=${folder2Id}`);
+  assert(r11b.body.data.length === 2, `文件夹2现有2个原型`);
+  assert(r11b.body.data.some(p => p.name.includes('首页')), `包含"首页"`);
+  assert(r11b.body.data.some(p => p.name.includes('登录页')), `也包含"登录页"（同名不同文件夹）`);
+
+  // 12. 无文件夹同名上传 → 又创建一个新原型
+  console.log('\n【12. 根目录同名文件】');
+  const r12 = await req('POST', `/api/projects/${pid}/versions`, {
+    formData: [
+      { type: 'file', name: 'file', filename: '登录页.html', content: '<h1>根目录登录页</h1>' },
+      { type: 'text', name: 'title', value: '登录页.html' },
+    ]
+  });
+  assert(r12.status === 201, `上传成功`);
+  assert(r12.body.data.prototype_id !== p1Id, `与文件夹1的原型ID不同`);
+  assert(r12.body.data.prototype_id !== r11.body.data.prototype_id, `与文件夹2的原型ID不同`);
+
+  // 13. Final check
+  console.log('\n【13. 最终状态】');
+  const r13 = await req('GET', `/api/projects/${pid}/prototypes`);
+  assert(r13.body.data.length === 5, `共5个原型`);
+
+  // 14. 再次传同名文件到文件夹1 → 应归入已有原型（v3）
+  console.log('\n【14. 文件夹1再次传同名文件 → v3】');
+  const r14 = await req('POST', `/api/projects/${pid}/versions`, {
+    formData: [
+      { type: 'file', name: 'file', filename: '登录页.html', content: '<h1>登录页v3</h1>' },
+      { type: 'text', name: 'title', value: '登录页.html' },
+      { type: 'text', name: 'folder_id', value: folder1Id },
+    ]
+  });
+  assert(r14.status === 201, `上传成功`);
+  assert(r14.body.data.prototype_id === p1Id, `归入文件夹1的原型`);
+  assert(r14.body.data.version_number === 3, `版本号为3`);
+
   console.log('\n');
 
   // Summary

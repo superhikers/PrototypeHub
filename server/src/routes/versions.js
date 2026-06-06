@@ -42,12 +42,16 @@ router.post('/projects/:pid/versions', upload.single('file'), (req, res, next) =
     const project = db.prepare('SELECT id FROM projects WHERE id = ?').get(req.params.pid);
     if (!project) return res.status(404).json({ error: { message: '项目不存在' } });
 
-    // Determine prototype
+    // Determine prototype (name unique per folder scope)
     let ptid = prototypeId;
     if (!ptid) {
-      // Use title (from frontend FormData text field, UTF-8 safe) as prototype name
       const baseName = title || req.file.originalname.replace(/\.[^.]+$/, '');
-      const existing = db.prepare('SELECT id FROM prototypes WHERE project_id = ? AND name = ?').get(req.params.pid, baseName);
+      let existing;
+      if (folderId) {
+        existing = db.prepare('SELECT id FROM prototypes WHERE project_id = ? AND name = ? AND folder_id = ?').get(req.params.pid, baseName, folderId);
+      } else {
+        existing = db.prepare('SELECT id FROM prototypes WHERE project_id = ? AND name = ? AND folder_id IS NULL').get(req.params.pid, baseName);
+      }
       if (existing) {
         ptid = existing.id;
       } else {
