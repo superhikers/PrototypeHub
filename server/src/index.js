@@ -1,3 +1,5 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db/init.js';
@@ -22,6 +24,15 @@ app.use('/api', annotationRoutes);
 
 import commentRoutes from './routes/comments.js';
 app.use('/api', commentRoutes);
+
+// 生产环境静态文件服务
+if (process.env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  app.use(express.static(path.resolve(__dirname, '..', 'public')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '..', 'public', 'index.html'));
+  });
+}
 
 // 全局错误处理
 app.use((err, req, res, next) => {
