@@ -45,6 +45,7 @@ export function initDb() {
     CREATE INDEX IF NOT EXISTS idx_versions_project ON prototype_versions(project_id);
     CREATE INDEX IF NOT EXISTS idx_annotations_version ON annotations(version_id);
     CREATE INDEX IF NOT EXISTS idx_comments_annotation ON comments(annotation_id);
+    CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_project_number ON prototype_versions(project_id, version_number);
   `);
 }

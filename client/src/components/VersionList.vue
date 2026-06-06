@@ -44,6 +44,9 @@ import { ref } from 'vue'
 import { useVersionStore } from '../stores/versionStore'
 
 const emit = defineEmits(['select'])
+const props = defineProps({
+  projectId: { type: String, required: true },
+})
 const versionStore = useVersionStore()
 
 const showUpload = ref(false)
@@ -55,9 +58,7 @@ function onFileChange(e) { selectedFile.value = e.target.files[0] }
 
 async function doUpload() {
   if (!selectedFile.value) return
-  const pid = versionStore.list[0]?.project_id
-  if (!pid) return
-  await versionStore.uploadVersion(pid, selectedFile.value, uploadTitle.value)
+  await versionStore.uploadVersion(props.projectId, selectedFile.value, uploadTitle.value)
   showUpload.value = false
   selectedFile.value = null
   uploadTitle.value = ''

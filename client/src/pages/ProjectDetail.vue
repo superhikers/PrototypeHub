@@ -11,7 +11,7 @@
     <div class="flex flex-1 overflow-hidden">
       <!-- 左栏 -->
       <aside class="w-56 border-r bg-white p-4 overflow-y-auto shrink-0">
-        <VersionList @select="onVersionSelect" @upload="versionStore.fetchVersions(project.id); showUpload = true" />
+        <VersionList :project-id="project.id" @select="onVersionSelect" @upload="versionStore.fetchVersions(project.id); showUpload = true" />
       </aside>
 
       <!-- 中间区域 -->

@@ -49,7 +49,7 @@ function setContainerWidth() {
 }
 
 function handleMessage(e) {
-  if (e.data?.type === 'resize' && e.data?.height) {
+  if (e.data?.type === 'resize' && e.data?.height && e.source === iframeEl.value?.contentWindow) {
     iframeHeight.value = e.data.height
     if (iframeEl.value) {
       iframeEl.value.style.height = iframeHeight.value + 'px'

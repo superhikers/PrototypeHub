@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute inset-0" @click="onLayerClick" style="pointer-events: none;">
+  <div class="absolute inset-0" @click="onLayerClick" :style="{ pointerEvents: mode === 'annotate' ? 'auto' : 'none' }">
     <div
       v-for="(a, idx) in annotations" :key="a.id"
       class="absolute cursor-pointer group"
