@@ -177,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
@@ -218,6 +218,15 @@ const newContent = ref('')
 const newColor = ref(COLORS[1])
 
 const selectedFolder = ref(null)
+
+watch(selectedFolder, (folderId) => {
+  const filtered = folderId
+    ? versionStore.list.filter(v => v.folder_id === folderId)
+    : versionStore.list
+  if (filtered.length > 0) {
+    onVersionSelect(filtered[0])
+  }
+})
 const showNewFolder = ref(false)
 const newFolderName = ref('')
 
