@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 overflow-auto relative" ref="container" @dragover.prevent @drop="onDrop">
+  <div class="flex-1 overflow-auto relative" ref="container">
     <div v-if="!version" class="flex items-center justify-center h-full text-gray-400 text-sm">
       暂无版本，请上传 HTML 文件
     </div>
@@ -19,6 +19,7 @@
         @select="$emit('select', $event)"
         @delete="$emit('delete', $event)"
         @click-on-prototype="handleClick"
+        @drop="onAnnotationLayerDrop"
       />
     </div>
   </div>
@@ -68,13 +69,8 @@ function handleClick(pos) {
   }
 }
 
-function onDrop(e) {
-  if (e.dataTransfer.getData('text/plain') === 'new-annotation') {
-    const rect = container.value.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top + container.value.scrollTop) / iframeHeight.value) * 100
-    emit('annotate', { x, y })
-  }
+function onAnnotationLayerDrop(pos) {
+  emit('annotate', pos)
 }
 
 onMounted(() => {

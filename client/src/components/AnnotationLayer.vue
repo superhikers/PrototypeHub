@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute inset-0" @click="onLayerClick" :style="{ pointerEvents: mode === 'annotate' ? 'auto' : 'none' }">
+  <div class="absolute inset-0" @click="onLayerClick" @dragover.prevent @drop="onDrop">
     <div
       v-for="(a, idx) in annotations" :key="a.id"
       :id="'annotation-' + a.id"
@@ -30,7 +30,7 @@ const props = defineProps({
   mode: { type: String, default: 'hand' },
   containerWidth: Number,
 })
-const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype'])
+const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype', 'drop'])
 
 function onLayerClick(e) {
   if (props.mode !== 'annotate') return
@@ -47,5 +47,12 @@ function onAnnotationClick(a) {
 
 function onDelete(a) {
   emit('delete', a)
+}
+
+function onDrop(e) {
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = ((e.clientX - rect.left) / rect.width) * 100
+  const y = ((e.clientY - rect.top) / rect.height) * 100
+  emit('drop', { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 })
 }
 </script>

@@ -54,8 +54,9 @@
           <h3 class="font-bold text-sm mb-3">标注列表</h3>
           <div v-if="annotationStore.list.length === 0" class="text-sm text-gray-400">暂无标注</div>
           <AnnotationCard
-            v-for="a in annotationStore.sortedList" :key="a.id"
+            v-for="(a, idx) in annotationStore.sortedList" :key="a.id"
             :annotation="a"
+            :number="idx + 1"
             @click="selectAnnotation(a)"
           />
         </div>
