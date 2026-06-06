@@ -1,0 +1,13 @@
+{
+  "name": "prototypehub",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
