@@ -30,14 +30,17 @@
         <div class="bg-white border-t px-4 py-2 flex items-center gap-2 shrink-0">
           <button v-for="m in modes" :key="m.key"
             class="px-3 py-1 text-sm rounded"
-            :class="annotationStore.mode === m.key ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'"
-            @click="annotationStore.setMode(m.key)">
+            :class="[
+              annotationStore.mode === m.key ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200',
+              m.key === 'annotate' && !allowCreateAnno ? 'opacity-30 cursor-not-allowed' : ''
+            ]"
+            @click="m.key === 'annotate' && !allowCreateAnno ? null : annotationStore.setMode(m.key)">
             {{ m.label }}
           </button>
           <div class="flex-1"></div>
           <ResolutionSwitcher />
           <!-- 便签盒（拖拽创建标注） -->
-          <div class="w-6 h-6 rounded-full bg-yellow-300 border-2 border-yellow-500 cursor-grab active:cursor-grabbing"
+          <div v-if="allowCreateAnno" class="w-6 h-6 rounded-full bg-yellow-300 border-2 border-yellow-500 cursor-grab active:cursor-grabbing"
             draggable="true"
             @dragstart="onDragStart"
             title="拖拽到原型上创建标注"
@@ -102,6 +105,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
 import { useAnnotationStore } from '../stores/annotationStore'
 import { getAuthor } from '../utils/author'
+import { api } from '../utils/api'
 import VersionList from '../components/VersionList.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
 import AnnotationCard from '../components/AnnotationCard.vue'
@@ -115,6 +119,8 @@ const annotationStore = useAnnotationStore()
 const author = ref(getAuthor())
 
 const COLORS = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6', '#FF8C42']
+
+const allowCreateAnno = ref(true)
 
 const modes = [
   { key: 'hand', label: '手型' },
@@ -132,6 +138,10 @@ const newColor = ref(COLORS[1])
 onMounted(async () => {
   await projectStore.fetchProject(route.params.id)
   project.value = projectStore.current
+  try {
+    const r = await api.getSettings(route.params.id)
+    allowCreateAnno.value = r.data.allow_annotate !== 0
+  } catch {}
   await versionStore.fetchVersions(route.params.id)
   if (versionStore.list.length > 0) {
     versionStore.setCurrent(versionStore.list[0])
@@ -170,7 +180,13 @@ async function onDeleteAnnotation(a) {
   await annotationStore.deleteAnnotation(versionStore.current.id, a.id)
 }
 
-function selectAnnotation(a) { annotationStore.selectAnnotation(a) }
+function selectAnnotation(a) {
+  annotationStore.selectAnnotation(a)
+  setTimeout(() => {
+    const el = document.getElementById('annotation-' + a.id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 50)
+}
 
 function onDragStart(e) {
   e.dataTransfer.setData('text/plain', 'new-annotation')

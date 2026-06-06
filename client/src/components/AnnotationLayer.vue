@@ -2,6 +2,7 @@
   <div class="absolute inset-0" @click="onLayerClick" :style="{ pointerEvents: mode === 'annotate' ? 'auto' : 'none' }">
     <div
       v-for="(a, idx) in annotations" :key="a.id"
+      :id="'annotation-' + a.id"
       class="absolute cursor-pointer group"
       :style="{ left: a.x + '%', top: a.y + '%', transform: 'translate(-50%, -50%)', pointerEvents: 'auto' }"
       @click.stop="onAnnotationClick(a)"
@@ -36,7 +37,7 @@ function onLayerClick(e) {
   const rect = e.currentTarget.getBoundingClientRect()
   const x = ((e.clientX - rect.left) / rect.width) * 100
   const y = ((e.clientY - rect.top) / rect.height) * 100
-  emit('click-on-prototype', { x, y })
+  emit('click-on-prototype', { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 })
 }
 
 function onAnnotationClick(a) {

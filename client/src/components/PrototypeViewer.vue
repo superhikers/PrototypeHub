@@ -72,7 +72,7 @@ function onDrop(e) {
   if (e.dataTransfer.getData('text/plain') === 'new-annotation') {
     const rect = container.value.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
+    const y = ((e.clientY - rect.top + container.value.scrollTop) / iframeHeight.value) * 100
     emit('annotate', { x, y })
   }
 }
