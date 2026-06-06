@@ -318,13 +318,27 @@ async function onUploadFile(e) {
   const pid = route.params.id
   const ptid = protoStore.current?.id || null
   const fid = selectedFolder.value
-  await versionStore.uploadVersion(pid, file, file.name, ptid, fid)
+  const uploaded = await versionStore.uploadVersion(pid, file, file.name, ptid, fid)
   e.target.value = ''
-  // Refresh prototypes list
-  await loadPrototypes()
-  if (ptid && protoStore.current) {
-    selectPrototype(protoStore.current)
+  // Add to prototype store if new
+  if (!ptid && uploaded) {
+    const baseName = file.name.replace(/\.[^.]+$/, '')
+    const existing = protoStore.list.find(p => p.name === baseName)
+    if (!existing) {
+      protoStore.list.unshift({
+        id: uploaded.prototype_id,
+        name: baseName,
+        project_id: pid,
+        folder_id: fid,
+        latest_version: uploaded.version_number,
+        version_count: 1,
+      })
+    }
+    const newProto = protoStore.list.find(p => p.id === uploaded.prototype_id)
+    if (newProto) selectPrototype(newProto)
   }
+  // Refresh from server for accurate data
+  loadPrototypes()
 }
 
 async function doDeletePrototype(p) {
