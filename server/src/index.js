@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { initDb } from './db/init.js';
+import { getDb } from './db/connection.js';
 import config from './config.js';
 
 const app = express();
@@ -16,7 +17,7 @@ initDb();
 
 // 全局错误处理
 app.use((err, req, res, next) => {
-  const status = err.statusCode || 500;
+  const status = err.statusCode || err.status || 500;
   res.status(status).json({
     error: {
       message: err.message || '服务器内部错误',
@@ -25,8 +26,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
 });
+
+function gracefulShutdown() {
+  console.log('\nShutting down...');
+  const db = getDb();
+  if (db) db.close();
+  server.close(() => process.exit(0));
+}
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
 
 export default app;
