@@ -45,7 +45,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(config.port, () => {
+const server = process.env.VITEST ? null : app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
 });
 
@@ -53,7 +53,8 @@ function gracefulShutdown() {
   console.log('\nShutting down...');
   const db = getDb();
   if (db) db.close();
-  server.close(() => process.exit(0));
+  if (server) server.close(() => process.exit(0));
+  else process.exit(0);
 }
 
 process.on('SIGINT', gracefulShutdown);
