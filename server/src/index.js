@@ -11,9 +11,8 @@ app.use(express.json());
 
 initDb();
 
-// 路由（后续 task 添加）
-// import projectRoutes from './routes/projects.js';
-// app.use('/api', projectRoutes);
+import projectRoutes from './routes/projects.js';
+app.use('/api', projectRoutes);
 
 // 全局错误处理
 app.use((err, req, res, next) => {
