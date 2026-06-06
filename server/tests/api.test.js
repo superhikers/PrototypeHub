@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+process.env.DB_PATH = './data/test-prototypehub.db';
+
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { unlinkSync } from 'fs';
 import supertest from 'supertest';
 import app from '../src/index.js';
 import { getDb } from '../src/db/connection.js';
 
 const request = supertest(app);
+
+afterAll(() => {
+  try { unlinkSync('./data/test-prototypehub.db'); } catch {}
+});
 
 describe('Projects API', () => {
   const testProject = { name: '测试项目', description: '这是一个测试' };
