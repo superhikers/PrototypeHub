@@ -17,6 +17,9 @@ app.use('/api', projectRoutes);
 import versionRoutes from './routes/versions.js';
 app.use('/api', versionRoutes);
 
+import annotationRoutes from './routes/annotations.js';
+app.use('/api', annotationRoutes);
+
 // 全局错误处理
 app.use((err, req, res, next) => {
   const status = err.statusCode || err.status || 500;
