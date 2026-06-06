@@ -3,8 +3,11 @@
     <div
       v-for="(a, idx) in annotations" :key="a.id"
       :id="'annotation-' + a.id"
-      class="absolute cursor-pointer group"
+      class="absolute group"
+      :class="{ 'cursor-grab': mode === 'hand', 'cursor-pointer': mode !== 'hand' }"
       :style="{ left: a.x + '%', top: a.y + '%', transform: 'translate(-50%, -50%)', pointerEvents: 'auto' }"
+      :draggable="mode === 'hand'"
+      @dragstart="onDotDragStart(a, $event)"
       @click.stop="onAnnotationClick(a)"
     >
       <div v-if="mode !== 'delete'" class="relative" :style="{ width: '28px', height: '28px' }">
@@ -30,7 +33,7 @@ const props = defineProps({
   mode: { type: String, default: 'hand' },
   containerWidth: Number,
 })
-const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype', 'drop'])
+const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype', 'drop', 'move'])
 
 function onLayerClick(e) {
   if (props.mode !== 'annotate') return
@@ -49,10 +52,23 @@ function onDelete(a) {
   emit('delete', a)
 }
 
+function onDotDragStart(a, e) {
+  e.dataTransfer.setData('application/annotation-move', a.id)
+  e.dataTransfer.effectAllowed = 'move'
+}
+
 function onDrop(e) {
+  const moveId = e.dataTransfer.getData('application/annotation-move')
+  if (moveId) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100 * 10) / 10
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100 * 10) / 10
+    emit('move', { id: moveId, x, y })
+    return
+  }
   const rect = e.currentTarget.getBoundingClientRect()
-  const x = ((e.clientX - rect.left) / rect.width) * 100
-  const y = ((e.clientY - rect.top) / rect.height) * 100
-  emit('drop', { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 })
+  const x = Math.round(((e.clientX - rect.left) / rect.width) * 100 * 10) / 10
+  const y = Math.round(((e.clientY - rect.top) / rect.height) * 100 * 10) / 10
+  emit('drop', { x, y })
 }
 </script>

@@ -26,6 +26,7 @@
           @annotate="onAnnotate"
           @select="selectAnnotation"
           @delete="onDeleteAnnotation"
+          @update-annotation="onUpdateAnnotation"
         />
         <div class="bg-white border-t px-4 py-2 flex items-center gap-2 shrink-0">
           <button v-for="m in modes" :key="m.key"
@@ -232,6 +233,10 @@ async function confirmCreate() {
 async function onDeleteAnnotation(a) {
   if (!confirm('确定删除此标注？')) return
   await annotationStore.deleteAnnotation(versionStore.current.id, a.id)
+}
+
+async function onUpdateAnnotation({ id, x, y }) {
+  await annotationStore.updateAnnotation(versionStore.current.id, id, { x, y })
 }
 
 const selectedNumber = computed(() => {

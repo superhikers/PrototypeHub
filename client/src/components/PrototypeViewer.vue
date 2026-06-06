@@ -20,6 +20,7 @@
         @delete="$emit('delete', $event)"
         @click-on-prototype="handleClick"
         @drop="onAnnotationLayerDrop"
+        @move="onAnnotationMove"
       />
     </div>
   </div>
@@ -35,7 +36,7 @@ const props = defineProps({
   annotations: Array,
   mode: { type: String, default: 'hand' },
 })
-const emit = defineEmits(['annotate', 'select', 'delete'])
+const emit = defineEmits(['annotate', 'select', 'delete', 'update-annotation'])
 
 const container = ref(null)
 const iframeEl = ref(null)
@@ -71,6 +72,10 @@ function handleClick(pos) {
 
 function onAnnotationLayerDrop(pos) {
   emit('annotate', pos)
+}
+
+function onAnnotationMove({ id, x, y }) {
+  emit('update-annotation', { id, x, y })
 }
 
 onMounted(() => {
