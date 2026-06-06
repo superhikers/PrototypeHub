@@ -4,6 +4,9 @@
       <div class="flex items-center gap-4">
         <router-link to="/" class="text-sm text-blue-600 hover:underline">← 返回列表</router-link>
         <h1 class="font-bold">{{ project.name }}</h1>
+        <router-link :to="`/project/${project.id}/settings`" class="text-xs text-gray-400 hover:text-blue-600 ml-2">
+          设置
+        </router-link>
       </div>
       <div class="text-sm text-gray-500">{{ author }}</div>
     </header>

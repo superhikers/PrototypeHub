@@ -38,4 +38,8 @@ export const api = {
   // Comments
   getComments: (aid) => request(`/annotations/${aid}/comments`),
   addComment: (aid, data) => request(`/annotations/${aid}/comments`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Settings
+  getSettings: (pid) => request(`/projects/${pid}/settings`),
+  updateSettings: (pid, data) => request(`/projects/${pid}/settings`, { method: 'PUT', body: JSON.stringify(data) }),
 }
