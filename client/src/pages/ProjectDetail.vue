@@ -23,10 +23,12 @@
           :version="versionStore.current"
           :annotations="annotationStore.sortedList"
           :mode="annotationStore.mode"
+          :selected-ids="annotationStore.selectedIds"
           @annotate="onAnnotate"
           @select="selectAnnotation"
           @delete="onDeleteAnnotation"
           @update-annotation="onUpdateAnnotation"
+          @toggle-select="annotationStore.toggleSelect"
         />
         <div class="bg-white border-t px-4 py-2 flex items-center gap-2 shrink-0">
           <button v-for="m in modes" :key="m.key"
@@ -40,6 +42,13 @@
           </button>
           <div class="flex-1"></div>
           <ResolutionSwitcher />
+          <!-- 批量删除 -->
+          <div v-if="annotationStore.mode === 'select' && annotationStore.selectedIds.length > 0" class="ml-2">
+            <button class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+              @click="batchDelete">
+              删除选中 ({{ annotationStore.selectedIds.length }})
+            </button>
+          </div>
           <!-- 便签盒（拖拽创建标注） -->
           <div v-if="allowCreateAnno" class="w-6 h-6 rounded-full bg-yellow-300 border-2 border-yellow-500 cursor-grab active:cursor-grabbing"
             draggable="true"
@@ -156,6 +165,7 @@ const allowCreateAnno = ref(true)
 
 const modes = [
   { key: 'hand', label: '手型' },
+  { key: 'select', label: '选择' },
   { key: 'annotate', label: '标注' },
   { key: 'delete', label: '删除' },
 ]
@@ -233,6 +243,11 @@ async function confirmCreate() {
 async function onDeleteAnnotation(a) {
   if (!confirm('确定删除此标注？')) return
   await annotationStore.deleteAnnotation(versionStore.current.id, a.id)
+}
+
+async function batchDelete() {
+  if (!confirm(`确定删除选中的 ${annotationStore.selectedIds.length} 个标注？`)) return
+  await annotationStore.deleteSelected(versionStore.current.id)
 }
 
 async function onUpdateAnnotation({ id, x, y }) {

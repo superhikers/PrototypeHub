@@ -10,7 +10,24 @@
       @dragstart="onDotDragStart(a, $event)"
       @click.stop="onAnnotationClick(a)"
     >
-      <div v-if="mode !== 'delete'" class="relative" :style="{ width: '28px', height: '28px' }">
+      <!-- 删除模式 — 红色 X -->
+      <div v-if="mode === 'delete'" class="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md cursor-pointer hover:bg-red-600"
+        @click.stop="onDelete(a)">
+        ✕
+      </div>
+      <!-- 选择模式 — 点击切换选中状态 -->
+      <div v-else-if="mode === 'select'" class="relative" :style="{ width: '28px', height: '28px' }">
+        <div class="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md"
+          :style="{ backgroundColor: selectedIds.includes(a.id) ? '#10B981' : a.color, opacity: selectedIds.includes(a.id) ? '1' : '0.6' }">
+          {{ idx + 1 }}
+        </div>
+        <div v-if="selectedIds.includes(a.id)"
+          class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow">
+          ✓
+        </div>
+      </div>
+      <!-- 手型/标注模式 — 彩色圆点 -->
+      <div v-else class="relative" :style="{ width: '28px', height: '28px' }">
         <div class="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md"
           :style="{ backgroundColor: a.color }">
           {{ idx + 1 }}
@@ -18,10 +35,6 @@
         <div v-if="mode === 'hand'" class="absolute -top-2 -right-2 hidden group-hover:block">
           <button class="w-5 h-5 bg-white rounded-full shadow text-xs border hover:bg-gray-100" @click.stop="$emit('edit', a)">✎</button>
         </div>
-      </div>
-      <div v-else class="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md cursor-pointer hover:bg-red-600"
-        @click.stop="onDelete(a)">
-        ✕
       </div>
     </div>
   </div>
@@ -32,8 +45,9 @@ const props = defineProps({
   annotations: Array,
   mode: { type: String, default: 'hand' },
   containerWidth: Number,
+  selectedIds: { type: Array, default: () => [] },
 })
-const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype', 'drop', 'move'])
+const emit = defineEmits(['select', 'delete', 'edit', 'click-on-prototype', 'drop', 'move', 'toggle-select'])
 
 function onLayerClick(e) {
   if (props.mode !== 'annotate') return
@@ -45,6 +59,10 @@ function onLayerClick(e) {
 
 function onAnnotationClick(a) {
   if (props.mode === 'delete') return
+  if (props.mode === 'select') {
+    emit('toggle-select', a.id)
+    return
+  }
   emit('select', a)
 }
 

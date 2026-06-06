@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { api } from '../utils/api'
 
 export const useAnnotationStore = defineStore('annotation', {
-  state: () => ({ list: [], selected: null, loading: false, mode: 'hand', error: null }),
+  state: () => ({ list: [], selected: null, selectedIds: [], loading: false, mode: 'hand', error: null }),
   getters: {
     sortedList: (state) => [...state.list].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
   },
@@ -28,8 +28,30 @@ export const useAnnotationStore = defineStore('annotation', {
       this.list = this.list.filter(a => a.id !== aid)
       if (this.selected?.id === aid) this.selected = null
     },
+    toggleSelect(id) {
+      const idx = this.selectedIds.indexOf(id)
+      if (idx >= 0) this.selectedIds.splice(idx, 1)
+      else this.selectedIds.push(id)
+    },
+    clearSelectedIds() { this.selectedIds = [] },
+    async deleteSelected(vid) {
+      if (this.selectedIds.length === 0) return
+      for (const id of [...this.selectedIds]) {
+        await api.deleteAnnotation(vid, id)
+      }
+      this.list = this.list.filter(a => !this.selectedIds.includes(a.id))
+      this.selectedIds = []
+      if (this.selected && !this.list.find(a => a.id === this.selected.id)) {
+        this.selected = null
+      }
+    },
     selectAnnotation(a) { this.selected = a },
     clearSelection() { this.selected = null },
-    setMode(mode) { this.mode = mode },
+    setMode(mode) {
+      if (this.mode === 'select' && mode !== 'select') {
+        this.selectedIds = []
+      }
+      this.mode = mode
+    },
   },
 })

@@ -16,11 +16,13 @@
         :annotations="annotations"
         :mode="mode"
         :container-width="containerWidth"
+        :selected-ids="selectedIds"
         @select="$emit('select', $event)"
         @delete="$emit('delete', $event)"
         @click-on-prototype="handleClick"
         @drop="onAnnotationLayerDrop"
         @move="onAnnotationMove"
+        @toggle-select="$emit('toggle-select', $event)"
       />
     </div>
   </div>
@@ -35,8 +37,9 @@ const props = defineProps({
   version: Object,
   annotations: Array,
   mode: { type: String, default: 'hand' },
+  selectedIds: { type: Array, default: () => [] },
 })
-const emit = defineEmits(['annotate', 'select', 'delete', 'update-annotation'])
+const emit = defineEmits(['annotate', 'select', 'delete', 'update-annotation', 'toggle-select'])
 
 const container = ref(null)
 const iframeEl = ref(null)
