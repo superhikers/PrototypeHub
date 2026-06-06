@@ -11,11 +11,13 @@
           <span class="text-xs text-gray-400">{{ new Date(c.created_at).toLocaleString() }}</span>
         </div>
         <p class="text-gray-700 whitespace-pre-wrap ml-0">{{ c.content }}</p>
-        <button v-if="!c.parent_id" class="text-xs text-blue-600 hover:underline mt-1" @click="replyTo = replyTo === c.id ? null : c.id">
+        <button class="text-xs text-blue-600 hover:underline mt-1" @click="replyTo = replyTo === c.id ? null : c.id">
           {{ replyTo === c.id ? '取消回复' : '回复' }}
         </button>
-        <div v-if="replyTo === c.id" class="ml-4 mt-2">
-          <input v-model="replyContent" class="w-full border rounded px-2 py-1 text-xs mb-1" placeholder="输入回复..." @keyup.enter="addReply(c.id)" />
+        <div v-if="replyTo === c.id" class="ml-4 mt-2 flex gap-1">
+          <input v-model="replyContent" class="flex-1 border rounded px-2 py-1 text-xs" placeholder="输入回复..." @keyup.enter="addReply(c.id)" />
+          <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 disabled:opacity-50"
+            :disabled="!replyContent.trim() || !author" @click="addReply(c.id)">发送</button>
         </div>
         <div v-for="child in children(c.id)" :key="child.id" class="ml-4 mt-2 p-2 bg-gray-50 rounded">
           <div class="flex items-center gap-2 mb-1">
