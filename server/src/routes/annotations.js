@@ -25,7 +25,7 @@ router.get('/versions/:vid/annotations', (req, res, next) => {
   try {
     const db = getDb();
     const annotations = db.prepare(
-      'SELECT * FROM annotations WHERE version_id = ? ORDER BY created_at DESC'
+      'SELECT * FROM annotations WHERE version_id = ? ORDER BY created_at ASC'
     ).all(req.params.vid);
     res.json({ data: annotations });
   } catch (err) { next(err); }

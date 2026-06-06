@@ -4,7 +4,7 @@ import { api } from '../utils/api'
 export const useAnnotationStore = defineStore('annotation', {
   state: () => ({ list: [], selected: null, selectedIds: [], loading: false, mode: 'hand', error: null }),
   getters: {
-    sortedList: (state) => [...state.list].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+    sortedList: (state) => [...state.list].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
   },
   actions: {
     async fetchAnnotations(vid) {
