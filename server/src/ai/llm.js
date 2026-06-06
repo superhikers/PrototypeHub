@@ -5,9 +5,15 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
 function isRetryable(err) {
   const msg = err.message || ''
-  return msg.includes('timeout') || msg.includes('5xx') ||
-    msg.includes('rate limit') || msg.includes('network') ||
-    msg.includes('ECONNRESET') || msg.includes('429') || msg.includes('503')
+  if (msg.includes('timeout') || msg.includes('rate limit') || msg.includes('rate_limit') ||
+      msg.includes('network') || msg.includes('ECONNRESET')) return true
+  // Check for HTTP status codes in "API {status}: ..." format
+  const statusMatch = msg.match(/API\s+(\d+):/)
+  if (statusMatch) {
+    const status = parseInt(statusMatch[1], 10)
+    return status >= 429 || status >= 500
+  }
+  return false
 }
 
 export class LLMAdapter {
@@ -64,7 +70,7 @@ export class LLMAdapter {
   }
 
   async _streamClaude(prompt, systemPrompt, onToken, onProgress) {
-    const client = new Anthropic({ apiKey: this.apiKey })
+    const client = new Anthropic({ apiKey: this.apiKey, baseURL: this.baseUrl })
     onProgress?.({ step: 'analyzing', message: '正在分析需求...' })
 
     const stream = await client.messages.create({
@@ -116,6 +122,7 @@ export class LLMAdapter {
     }
 
     onProgress?.({ step: 'generating', message: '正在生成页面...' })
+    if (!response.body) throw new Error('流式响应中响应体为空')
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
@@ -132,7 +139,7 @@ export class LLMAdapter {
       for (const line of lines) {
         const trimmed = line.trim()
         if (!trimmed || !trimmed.startsWith('data: ')) continue
-        const data = trimmed.slice(6)
+        const data = trimmed.slice(6).trim()
         if (data === '[DONE]') continue
         try {
           const parsed = JSON.parse(data)
