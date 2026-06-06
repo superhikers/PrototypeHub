@@ -2,7 +2,7 @@
   <div>
     <div class="flex items-center justify-between mb-3">
       <h3 class="font-bold text-sm">版本列表</h3>
-      <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" @click="$emit('upload')">
+      <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" @click="showUpload = true">
         + 上传
       </button>
     </div>
@@ -30,7 +30,7 @@
           <span class="font-medium">v{{ v.version_number }}</span>
           <span v-if="v.title" class="ml-2 text-xs text-gray-500">— {{ v.title }}</span>
         </div>
-        <button class="text-xs text-red-500 hover:underline opacity-0 hover:opacity-100"
+        <button class="text-xs text-red-500 hover:underline"
           @click.stop="doDelete(v)">
           删除
         </button>

@@ -33,9 +33,14 @@
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
         v-for="p in store.list" :key="p.id"
-        class="bg-white rounded-lg border p-4 cursor-pointer hover:shadow-md transition-shadow"
+        class="bg-white rounded-lg border p-4 cursor-pointer hover:shadow-md transition-shadow relative group"
         @click="$router.push(`/project/${p.id}`)"
       >
+        <button
+          class="absolute top-1 right-1 w-6 h-6 bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          @click.stop="doDeleteProject(p)"
+          title="删除项目"
+        >✕</button>
         <h3 class="font-bold mb-1 truncate">{{ p.name }}</h3>
         <p v-if="p.description" class="text-sm text-gray-500 mb-2 truncate">{{ p.description }}</p>
         <div class="text-xs text-gray-400">
@@ -73,5 +78,10 @@ async function createProject() {
   newName.value = ''
   newDesc.value = ''
   if (project) router.push(`/project/${project.id}`)
+}
+
+async function doDeleteProject(p) {
+  if (!confirm(`确定删除项目「${p.name}」？将同时删除所有版本和标注`)) return
+  await store.deleteProject(p.id)
 }
 </script>
