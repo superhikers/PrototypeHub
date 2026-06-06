@@ -14,6 +14,9 @@ initDb();
 import projectRoutes from './routes/projects.js';
 app.use('/api', projectRoutes);
 
+import versionRoutes from './routes/versions.js';
+app.use('/api', versionRoutes);
+
 // 全局错误处理
 app.use((err, req, res, next) => {
   const status = err.statusCode || err.status || 500;
