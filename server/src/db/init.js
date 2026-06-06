@@ -63,7 +63,20 @@ export function initDb() {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_project_number ON prototype_versions(project_id, version_number);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_settings_project ON settings(project_id);
     CREATE INDEX IF NOT EXISTS idx_folders_project ON folders(project_id);
+
+    CREATE TABLE IF NOT EXISTS prototypes (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_prototypes_project ON prototypes(project_id);
+    CREATE INDEX IF NOT EXISTS idx_prototypes_folder ON prototypes(folder_id);
   `);
 
   try { db.exec('ALTER TABLE prototype_versions ADD COLUMN folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL'); } catch (e) { /* column may already exist */ }
+  try { db.exec('ALTER TABLE prototype_versions ADD COLUMN prototype_id TEXT REFERENCES prototypes(id) ON DELETE CASCADE'); } catch (e) { /* may already exist */ }
 }

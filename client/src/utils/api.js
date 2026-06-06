@@ -19,12 +19,16 @@ export const api = {
   deleteProject: (id) => request(`/projects/${id}`, { method: 'DELETE' }),
 
   // Versions
-  getVersions: (pid) => request(`/projects/${pid}/versions`),
+  getVersions: (pid, params) => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+    return request(`/projects/${pid}/versions${qs}`)
+  },
   getVersion: (pid, vid) => request(`/projects/${pid}/versions/${vid}`),
-  uploadVersion: (pid, file, title, folderId) => {
+  uploadVersion: (pid, file, title, prototypeId, folderId) => {
     const form = new FormData()
     form.append('file', file)
     form.append('title', title || '')
+    if (prototypeId) form.append('prototype_id', prototypeId)
     if (folderId) form.append('folder_id', folderId)
     return fetch(`${BASE_URL}/projects/${pid}/versions`, { method: 'POST', body: form }).then(r => r.json())
   },
@@ -43,6 +47,15 @@ export const api = {
   // Settings
   getSettings: (pid) => request(`/projects/${pid}/settings`),
   updateSettings: (pid, data) => request(`/projects/${pid}/settings`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Prototypes
+  getPrototypes: (pid, params) => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : ''
+    return request(`/projects/${pid}/prototypes${qs}`)
+  },
+  createPrototype: (pid, data) => request(`/projects/${pid}/prototypes`, { method: 'POST', body: JSON.stringify(data) }),
+  renamePrototype: (ptid, data) => request(`/prototypes/${ptid}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePrototype: (ptid) => request(`/prototypes/${ptid}`, { method: 'DELETE' }),
 
   // Folders
   getFolders: (pid) => request(`/projects/${pid}/folders`),

@@ -4,15 +4,19 @@ import { api } from '../utils/api'
 export const useVersionStore = defineStore('version', {
   state: () => ({ list: [], current: null, loading: false, uploading: false, error: null }),
   actions: {
-    async fetchVersions(pid) {
+    async fetchVersions(pid, prototypeId) {
       this.loading = true; this.error = null
-      try { const r = await api.getVersions(pid); this.list = r.data } catch (e) { this.error = e.message }
+      try {
+        const params = prototypeId ? { prototype_id: prototypeId } : null
+        const r = await api.getVersions(pid, params)
+        this.list = r.data
+      } catch (e) { this.error = e.message }
       finally { this.loading = false }
     },
-    async uploadVersion(pid, file, title, folderId) {
+    async uploadVersion(pid, file, title, prototypeId, folderId) {
       this.uploading = true; this.error = null
       try {
-        const r = await api.uploadVersion(pid, file, title, folderId)
+        const r = await api.uploadVersion(pid, file, title, prototypeId, folderId)
         if (r.error) throw new Error(r.error.message)
         this.list.unshift(r.data)
         this.current = r.data

@@ -31,6 +31,9 @@ app.use('/api', settingsRoutes);
 import folderRoutes from './routes/folders.js';
 app.use('/api', folderRoutes);
 
+import prototypeRoutes from './routes/prototypes.js';
+app.use('/api', prototypeRoutes);
+
 // 生产环境静态文件服务
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));

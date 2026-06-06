@@ -20,38 +20,54 @@
             <h3 class="font-bold text-sm">文件夹</h3>
             <button class="text-xs text-blue-600 hover:underline" @click="showNewFolder = true">+ 新建</button>
           </div>
-
-          <!-- 新建文件夹输入 -->
           <div v-if="showNewFolder" class="mb-2 flex gap-1">
-            <input v-model="newFolderName" class="flex-1 border rounded px-2 py-1 text-xs" placeholder="文件夹名" @keyup.enter="createFolder" @keyup.escape="showNewFolder = false" />
+            <input v-model="newFolderName" class="flex-1 border rounded px-2 py-1 text-xs" placeholder="名称" @keyup.enter="createFolder" @keyup.escape="showNewFolder = false" />
             <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" @click="createFolder">确定</button>
           </div>
-
-          <div v-if="folderStore.loading" class="text-xs text-gray-400">加载中...</div>
-          <div v-else class="space-y-0.5">
-            <!-- 全部版本（无文件夹） -->
+          <div class="space-y-0.5">
             <div class="flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer"
               :class="selectedFolder === null ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
-              @click="selectedFolder = null">
-              <span>全部版本</span>
-              <span class="text-gray-400">{{ totalVersionCount }}</span>
+              @click="selectedFolder = null; loadPrototypes()">
+              <span>全部原型</span>
             </div>
-            <!-- 文件夹列表 -->
-            <div v-for="f in folderStore.list" :key="f.id">
-              <div class="flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer group"
+            <div v-for="f in folderStore.list" :key="f.id" class="group">
+              <div class="flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer"
                 :class="selectedFolder === f.id ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
-                @click="selectedFolder = f.id">
+                @click="selectedFolder = f.id; loadPrototypes()">
                 <span>📁 {{ f.name }}</span>
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                  <span class="text-gray-400">{{ f.version_count }}</span>
-                  <button class="text-red-400 hover:text-red-600" @click.stop="doDeleteFolder(f)">✕</button>
-                </div>
+                <button class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100" @click.stop="doDeleteFolder(f)">✕</button>
               </div>
             </div>
           </div>
         </div>
 
-        <VersionList :project-id="project.id" :folder-id="selectedFolder" @select="onVersionSelect" />
+        <!-- 原型列表 -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-sm">原型列表</h3>
+            <label class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 cursor-pointer">
+              + 上传
+              <input type="file" accept=".html" class="hidden" @change="onUploadFile" />
+            </label>
+          </div>
+
+          <div v-if="protoStore.loading" class="text-xs text-gray-400">加载中...</div>
+          <div v-else-if="protoStore.list.length === 0" class="text-xs text-gray-400">暂无原型</div>
+          <div v-else class="space-y-0.5">
+            <div v-for="p in protoStore.list" :key="p.id"
+              class="px-2 py-1 rounded text-xs cursor-pointer group"
+              :class="protoStore.current?.id === p.id ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
+              @click="selectPrototype(p)">
+              <div class="flex items-center justify-between">
+                <span class="truncate">{{ p.name }}</span>
+                <div class="flex items-center gap-1 shrink-0">
+                  <span class="text-gray-400">v{{ p.latest_version || '?' }}</span>
+                  <button class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100" @click.stop="doDeletePrototype(p)">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <!-- 中间区域 -->
@@ -183,9 +199,9 @@ import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
 import { useAnnotationStore } from '../stores/annotationStore'
 import { useFolderStore } from '../stores/folderStore'
+import { usePrototypeStore } from '../stores/prototypeStore'
 import { getAuthor } from '../utils/author'
 import { api } from '../utils/api'
-import VersionList from '../components/VersionList.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
 import AnnotationCard from '../components/AnnotationCard.vue'
 import CommentThread from '../components/CommentThread.vue'
@@ -196,6 +212,7 @@ const projectStore = useProjectStore()
 const versionStore = useVersionStore()
 const annotationStore = useAnnotationStore()
 const folderStore = useFolderStore()
+const protoStore = usePrototypeStore()
 const author = ref(getAuthor())
 
 const COLORS = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6', '#FF8C42']
@@ -220,11 +237,8 @@ const newColor = ref(COLORS[1])
 const selectedFolder = ref(null)
 
 watch(selectedFolder, (folderId) => {
-  const filtered = folderId
-    ? versionStore.list.filter(v => v.folder_id === folderId)
-    : versionStore.list
-  if (filtered.length > 0) {
-    onVersionSelect(filtered[0])
+  if (!folderId) {
+    loadPrototypes()
   }
 })
 const showNewFolder = ref(false)
@@ -258,11 +272,11 @@ onMounted(async () => {
     const r = await api.getSettings(route.params.id)
     allowCreateAnno.value = r.data.allow_annotate !== 0
   } catch {}
-  await versionStore.fetchVersions(route.params.id)
   await folderStore.fetchFolders(route.params.id)
-  if (versionStore.list.length > 0) {
-    versionStore.setCurrent(versionStore.list[0])
-    onVersionSelect(versionStore.list[0])
+  await loadPrototypes()
+  // Auto-select first prototype if any
+  if (protoStore.list.length > 0) {
+    selectPrototype(protoStore.list[0])
   }
 })
 
@@ -277,6 +291,50 @@ async function doDeleteFolder(f) {
   if (!confirm(`删除文件夹「${f.name}」？版本将移出到根目录`)) return
   await folderStore.deleteFolder(f.id)
   if (selectedFolder.value === f.id) selectedFolder.value = null
+}
+
+async function loadPrototypes() {
+  const pid = route.params.id
+  const folderId = selectedFolder.value
+  await protoStore.fetchPrototypes(pid, folderId)
+}
+
+function selectPrototype(p) {
+  protoStore.setCurrent(p)
+  annotationStore.clearSelection()
+  versionStore.fetchVersions(route.params.id, p.id).then(() => {
+    if (versionStore.list.length > 0) {
+      versionStore.setCurrent(versionStore.list[0])
+      onVersionSelect(versionStore.list[0])
+    } else {
+      versionStore.setCurrent(null)
+    }
+  })
+}
+
+async function onUploadFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const pid = route.params.id
+  const ptid = protoStore.current?.id || null
+  const fid = selectedFolder.value
+  await versionStore.uploadVersion(pid, file, file.name, ptid, fid)
+  e.target.value = ''
+  // Refresh prototypes list
+  await loadPrototypes()
+  if (ptid && protoStore.current) {
+    selectPrototype(protoStore.current)
+  }
+}
+
+async function doDeletePrototype(p) {
+  if (!confirm(`删除原型「${p.name}」？所有版本将被删除`)) return
+  await protoStore.deletePrototype(p.id)
+  if (protoStore.current?.id === p.id) {
+    protoStore.setCurrent(null)
+    versionStore.list = []
+    versionStore.current = null
+  }
 }
 
 async function onVersionSelect(v) {
@@ -324,8 +382,6 @@ const selectedNumber = computed(() => {
   const idx = annotationStore.sortedList.findIndex(a => a.id === annotationStore.selected?.id)
   return idx >= 0 ? idx + 1 : 0
 })
-
-const totalVersionCount = computed(() => versionStore.list.length)
 
 function selectAnnotation(a) {
   const isSame = annotationStore.selected?.id === a.id
