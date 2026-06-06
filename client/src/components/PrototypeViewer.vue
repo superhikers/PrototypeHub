@@ -25,7 +25,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useUiStore } from '../stores/uiStore'
 import AnnotationLayer from './AnnotationLayer.vue'
 
 const props = defineProps({
@@ -38,14 +39,18 @@ const emit = defineEmits(['annotate', 'select', 'delete'])
 const container = ref(null)
 const iframeEl = ref(null)
 const iframeHeight = ref(600)
-const containerWidth = ref(1200)
+const ui = useUiStore()
+const naturalWidth = ref(1200)
+const containerWidth = computed(() => {
+  return ui.resolutionWidth || naturalWidth.value
+})
 
 function onIframeLoad() {
   setContainerWidth()
 }
 
 function setContainerWidth() {
-  containerWidth.value = container.value?.clientWidth || 1200
+  naturalWidth.value = container.value?.clientWidth || 1200
 }
 
 function handleMessage(e) {

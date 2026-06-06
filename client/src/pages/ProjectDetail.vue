@@ -11,7 +11,7 @@
     <div class="flex flex-1 overflow-hidden">
       <!-- 左栏 -->
       <aside class="w-56 border-r bg-white p-4 overflow-y-auto shrink-0">
-        <VersionList :project-id="project.id" @select="onVersionSelect" @upload="versionStore.fetchVersions(project.id); showUpload = true" />
+        <VersionList :project-id="project.id" @select="onVersionSelect" />
       </aside>
 
       <!-- 中间区域 -->
@@ -31,6 +31,8 @@
             @click="annotationStore.setMode(m.key)">
             {{ m.label }}
           </button>
+          <div class="flex-1"></div>
+          <ResolutionSwitcher />
         </div>
       </main>
 
@@ -95,6 +97,7 @@ import VersionList from '../components/VersionList.vue'
 import PrototypeViewer from '../components/PrototypeViewer.vue'
 import AnnotationCard from '../components/AnnotationCard.vue'
 import CommentThread from '../components/CommentThread.vue'
+import ResolutionSwitcher from '../components/ResolutionSwitcher.vue'
 
 const route = useRoute()
 const projectStore = useProjectStore()
