@@ -18,4 +18,8 @@ export default {
   dbPath: process.env.DB_PATH || resolve(root, 'data', 'prototypehub.db'),
   uploadDir,
   uploadLimit: parseInt(process.env.UPLOAD_LIMIT || (5 * 1024 * 1024).toString(), 10),
+  aiProvider: process.env.AI_PROVIDER || 'claude',
+  claudeApiKey: process.env.CLAUDE_API_KEY || '',
+  claudeModel: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
+  aiMaxTokens: process.env.AI_MAX_TOKENS || '8192',
 };
