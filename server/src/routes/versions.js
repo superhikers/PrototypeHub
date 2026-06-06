@@ -27,6 +27,7 @@ router.post('/projects/:pid/versions', upload.single('file'), (req, res, next) =
   try {
     if (!req.file) return res.status(400).json({ error: { message: '请上传 HTML 文件' } });
     const title = req.body.title || '';
+    const folderId = req.body.folder_id || null;
     const db = getDb();
     const project = db.prepare('SELECT id FROM projects WHERE id = ?').get(req.params.pid);
     if (!project) return res.status(404).json({ error: { message: '项目不存在' } });
@@ -36,8 +37,8 @@ router.post('/projects/:pid/versions', upload.single('file'), (req, res, next) =
     const id = uuid();
 
     db.prepare(
-      'INSERT INTO prototype_versions (id, project_id, version_number, title, source, html_file_path) VALUES (?, ?, ?, ?, ?, ?)'
-    ).run(id, req.params.pid, versionNumber, title, 'upload', req.file.filename);
+      'INSERT INTO prototype_versions (id, project_id, version_number, title, source, html_file_path, folder_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(id, req.params.pid, versionNumber, title, 'upload', req.file.filename, folderId);
 
     db.prepare("UPDATE projects SET updated_at = datetime('now') WHERE id = ?").run(req.params.pid);
 

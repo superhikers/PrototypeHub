@@ -9,10 +9,10 @@ export const useVersionStore = defineStore('version', {
       try { const r = await api.getVersions(pid); this.list = r.data } catch (e) { this.error = e.message }
       finally { this.loading = false }
     },
-    async uploadVersion(pid, file, title) {
+    async uploadVersion(pid, file, title, folderId) {
       this.uploading = true; this.error = null
       try {
-        const r = await api.uploadVersion(pid, file, title)
+        const r = await api.uploadVersion(pid, file, title, folderId)
         if (r.error) throw new Error(r.error.message)
         this.list.unshift(r.data)
         this.current = r.data

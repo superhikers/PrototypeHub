@@ -21,7 +21,7 @@
 
     <div class="space-y-1">
       <div
-        v-for="v in versionStore.list" :key="v.id"
+        v-for="v in displayList" :key="v.id"
         class="px-3 py-2 rounded cursor-pointer text-sm flex items-center justify-between"
         :class="versionStore.current?.id === v.id ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
         @click="selectVersion(v)"
@@ -40,14 +40,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useVersionStore } from '../stores/versionStore'
 
 const emit = defineEmits(['select'])
 const props = defineProps({
   projectId: { type: String, required: true },
+  folderId: { type: String, default: null },
 })
 const versionStore = useVersionStore()
+
+const displayList = computed(() => {
+  if (props.folderId) {
+    return versionStore.list.filter(v => v.folder_id === props.folderId)
+  }
+  return versionStore.list
+})
 
 const showUpload = ref(false)
 const selectedFile = ref(null)
@@ -58,7 +66,7 @@ function onFileChange(e) { selectedFile.value = e.target.files[0] }
 
 async function doUpload() {
   if (!selectedFile.value) return
-  await versionStore.uploadVersion(props.projectId, selectedFile.value, uploadTitle.value)
+  await versionStore.uploadVersion(props.projectId, selectedFile.value, uploadTitle.value, props.folderId)
   showUpload.value = false
   selectedFile.value = null
   uploadTitle.value = ''

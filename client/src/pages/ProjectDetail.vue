@@ -14,7 +14,44 @@
     <div class="flex flex-1 overflow-hidden">
       <!-- 左栏 -->
       <aside class="w-56 border-r bg-white p-4 overflow-y-auto shrink-0">
-        <VersionList :project-id="project.id" @select="onVersionSelect" />
+        <!-- 文件夹列表 -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-sm">文件夹</h3>
+            <button class="text-xs text-blue-600 hover:underline" @click="showNewFolder = true">+ 新建</button>
+          </div>
+
+          <!-- 新建文件夹输入 -->
+          <div v-if="showNewFolder" class="mb-2 flex gap-1">
+            <input v-model="newFolderName" class="flex-1 border rounded px-2 py-1 text-xs" placeholder="文件夹名" @keyup.enter="createFolder" @keyup.escape="showNewFolder = false" />
+            <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" @click="createFolder">确定</button>
+          </div>
+
+          <div v-if="folderStore.loading" class="text-xs text-gray-400">加载中...</div>
+          <div v-else class="space-y-0.5">
+            <!-- 全部版本（无文件夹） -->
+            <div class="flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer"
+              :class="selectedFolder === null ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
+              @click="selectedFolder = null">
+              <span>全部版本</span>
+              <span class="text-gray-400">{{ totalVersionCount }}</span>
+            </div>
+            <!-- 文件夹列表 -->
+            <div v-for="f in folderStore.list" :key="f.id">
+              <div class="flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer group"
+                :class="selectedFolder === f.id ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100'"
+                @click="selectedFolder = f.id">
+                <span>📁 {{ f.name }}</span>
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                  <span class="text-gray-400">{{ f.version_count }}</span>
+                  <button class="text-red-400 hover:text-red-600" @click.stop="doDeleteFolder(f)">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <VersionList :project-id="project.id" :folder-id="selectedFolder" @select="onVersionSelect" />
       </aside>
 
       <!-- 中间区域 -->
@@ -145,6 +182,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
 import { useAnnotationStore } from '../stores/annotationStore'
+import { useFolderStore } from '../stores/folderStore'
 import { getAuthor } from '../utils/author'
 import { api } from '../utils/api'
 import VersionList from '../components/VersionList.vue'
@@ -157,6 +195,7 @@ const route = useRoute()
 const projectStore = useProjectStore()
 const versionStore = useVersionStore()
 const annotationStore = useAnnotationStore()
+const folderStore = useFolderStore()
 const author = ref(getAuthor())
 
 const COLORS = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6', '#FF8C42']
@@ -177,6 +216,10 @@ const showCreateDialog = ref(false)
 const pendingPos = ref({ x: 0, y: 0 })
 const newContent = ref('')
 const newColor = ref(COLORS[1])
+
+const selectedFolder = ref(null)
+const showNewFolder = ref(false)
+const newFolderName = ref('')
 
 const editingAnnoId = ref(null)
 const editContent = ref('')
@@ -207,11 +250,25 @@ onMounted(async () => {
     allowCreateAnno.value = r.data.allow_annotate !== 0
   } catch {}
   await versionStore.fetchVersions(route.params.id)
+  await folderStore.fetchFolders(route.params.id)
   if (versionStore.list.length > 0) {
     versionStore.setCurrent(versionStore.list[0])
     onVersionSelect(versionStore.list[0])
   }
 })
+
+async function createFolder() {
+  if (!newFolderName.value.trim()) return
+  await folderStore.createFolder(route.params.id, newFolderName.value.trim())
+  newFolderName.value = ''
+  showNewFolder.value = false
+}
+
+async function doDeleteFolder(f) {
+  if (!confirm(`删除文件夹「${f.name}」？版本将移出到根目录`)) return
+  await folderStore.deleteFolder(f.id)
+  if (selectedFolder.value === f.id) selectedFolder.value = null
+}
 
 async function onVersionSelect(v) {
   if (!v) return
@@ -258,6 +315,8 @@ const selectedNumber = computed(() => {
   const idx = annotationStore.sortedList.findIndex(a => a.id === annotationStore.selected?.id)
   return idx >= 0 ? idx + 1 : 0
 })
+
+const totalVersionCount = computed(() => versionStore.list.length)
 
 function selectAnnotation(a) {
   const isSame = annotationStore.selected?.id === a.id

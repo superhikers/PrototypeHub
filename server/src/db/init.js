@@ -52,8 +52,18 @@ export function initDb() {
       allow_annotate INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS folders (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      name TEXT NOT NULL CHECK(length(name) > 0 AND length(name) <= 100),
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_project_number ON prototype_versions(project_id, version_number);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_settings_project ON settings(project_id);
+    CREATE INDEX IF NOT EXISTS idx_folders_project ON folders(project_id);
   `);
+
+  try { db.exec('ALTER TABLE prototype_versions ADD COLUMN folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL'); } catch (e) { /* column may already exist */ }
 }
