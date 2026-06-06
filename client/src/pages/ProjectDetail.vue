@@ -65,7 +65,12 @@
               <span class="text-xs text-gray-400">{{ new Date(annotationStore.selected.created_at).toLocaleString() }}</span>
             </div>
             <p class="text-sm whitespace-pre-wrap mb-2">{{ annotationStore.selected.content }}</p>
-            <CommentThread :annotation-id="annotationStore.selected.id" />
+            <button class="text-xs text-blue-600 hover:underline" @click="showComments = !showComments">
+              {{ showComments ? '收起评论' : '查看评论' }}
+            </button>
+            <div v-if="showComments" class="mt-2">
+              <CommentThread :annotation-id="annotationStore.selected.id" />
+            </div>
           </div>
 
           <!-- 标注列表 -->
@@ -137,6 +142,7 @@ const modes = [
 
 const project = ref(null)
 
+const showComments = ref(false)
 const showCreateDialog = ref(false)
 const pendingPos = ref({ x: 0, y: 0 })
 const newContent = ref('')
@@ -159,6 +165,7 @@ onMounted(async () => {
 async function onVersionSelect(v) {
   if (!v) return
   annotationStore.clearSelection()
+  showComments.value = false
   await annotationStore.fetchAnnotations(v.id)
 }
 
@@ -193,7 +200,13 @@ const selectedNumber = computed(() => {
 })
 
 function selectAnnotation(a) {
+  const isSame = annotationStore.selected?.id === a.id
+  if (isSame) {
+    showComments.value = !showComments.value
+    return
+  }
   annotationStore.selectAnnotation(a)
+  showComments.value = false
   setTimeout(() => {
     const el = document.getElementById('annotation-' + a.id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
