@@ -45,7 +45,15 @@ export function initDb() {
     CREATE INDEX IF NOT EXISTS idx_versions_project ON prototype_versions(project_id);
     CREATE INDEX IF NOT EXISTS idx_annotations_version ON annotations(version_id);
     CREATE INDEX IF NOT EXISTS idx_comments_annotation ON comments(annotation_id);
+    CREATE TABLE IF NOT EXISTS settings (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL UNIQUE REFERENCES projects(id) ON DELETE CASCADE,
+      allow_comment INTEGER NOT NULL DEFAULT 1,
+      allow_annotate INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_versions_project_number ON prototype_versions(project_id, version_number);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_settings_project ON settings(project_id);
   `);
 }

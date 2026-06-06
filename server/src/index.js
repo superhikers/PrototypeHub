@@ -25,6 +25,9 @@ app.use('/api', annotationRoutes);
 import commentRoutes from './routes/comments.js';
 app.use('/api', commentRoutes);
 
+import settingsRoutes from './routes/settings.js';
+app.use('/api', settingsRoutes);
+
 // 生产环境静态文件服务
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
