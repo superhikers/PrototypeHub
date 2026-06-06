@@ -236,10 +236,12 @@ const newColor = ref(COLORS[1])
 
 const selectedFolder = ref(null)
 
-watch(selectedFolder, (folderId) => {
-  if (!folderId) {
-    loadPrototypes()
-  }
+watch(selectedFolder, () => {
+  protoStore.setCurrent(null)
+  versionStore.setCurrent(null)
+  versionStore.list = []
+  annotationStore.clearSelection()
+  loadPrototypes()
 })
 const showNewFolder = ref(false)
 const newFolderName = ref('')
@@ -318,27 +320,13 @@ async function onUploadFile(e) {
   const pid = route.params.id
   const ptid = protoStore.current?.id || null
   const fid = selectedFolder.value
-  const uploaded = await versionStore.uploadVersion(pid, file, file.name, ptid, fid)
+  await versionStore.uploadVersion(pid, file, file.name, ptid, fid)
   e.target.value = ''
-  // Add to prototype store if new
-  if (!ptid && uploaded) {
-    const baseName = file.name.replace(/\.[^.]+$/, '')
-    const existing = protoStore.list.find(p => p.name === baseName)
-    if (!existing) {
-      protoStore.list.unshift({
-        id: uploaded.prototype_id,
-        name: baseName,
-        project_id: pid,
-        folder_id: fid,
-        latest_version: uploaded.version_number,
-        version_count: 1,
-      })
-    }
-    const newProto = protoStore.list.find(p => p.id === uploaded.prototype_id)
-    if (newProto) selectPrototype(newProto)
+  await loadPrototypes()
+  // Auto-select the first prototype in current folder
+  if (protoStore.list.length > 0) {
+    selectPrototype(protoStore.list[0])
   }
-  // Refresh from server for accurate data
-  loadPrototypes()
 }
 
 async function doDeletePrototype(p) {

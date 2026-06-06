@@ -45,7 +45,8 @@ router.post('/projects/:pid/versions', upload.single('file'), (req, res, next) =
     // Determine prototype
     let ptid = prototypeId;
     if (!ptid) {
-      const baseName = req.file.originalname.replace(/\.[^.]+$/, '');
+      // Use title (from frontend FormData text field, UTF-8 safe) as prototype name
+      const baseName = title || req.file.originalname.replace(/\.[^.]+$/, '');
       const existing = db.prepare('SELECT id FROM prototypes WHERE project_id = ? AND name = ?').get(req.params.pid, baseName);
       if (existing) {
         ptid = existing.id;
