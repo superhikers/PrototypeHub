@@ -21,7 +21,7 @@
       <main class="flex-1 flex flex-col overflow-hidden bg-gray-100">
         <PrototypeViewer
           :version="versionStore.current"
-          :annotations="annotationStore.list"
+          :annotations="annotationStore.sortedList"
           :mode="annotationStore.mode"
           @annotate="onAnnotate"
           @select="selectAnnotation"
