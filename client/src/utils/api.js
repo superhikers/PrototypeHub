@@ -21,10 +21,11 @@ export const api = {
   // Versions
   getVersions: (pid) => request(`/projects/${pid}/versions`),
   getVersion: (pid, vid) => request(`/projects/${pid}/versions/${vid}`),
-  uploadVersion: (pid, file, title) => {
+  uploadVersion: (pid, file, title, folderId) => {
     const form = new FormData()
     form.append('file', file)
     form.append('title', title || '')
+    if (folderId) form.append('folder_id', folderId)
     return fetch(`${BASE_URL}/projects/${pid}/versions`, { method: 'POST', body: form }).then(r => r.json())
   },
   deleteVersion: (pid, vid) => request(`/projects/${pid}/versions/${vid}`, { method: 'DELETE' }),
@@ -42,4 +43,10 @@ export const api = {
   // Settings
   getSettings: (pid) => request(`/projects/${pid}/settings`),
   updateSettings: (pid, data) => request(`/projects/${pid}/settings`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Folders
+  getFolders: (pid) => request(`/projects/${pid}/folders`),
+  createFolder: (pid, data) => request(`/projects/${pid}/folders`, { method: 'POST', body: JSON.stringify(data) }),
+  renameFolder: (fid, data) => request(`/folders/${fid}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteFolder: (fid) => request(`/folders/${fid}`, { method: 'DELETE' }),
 }
