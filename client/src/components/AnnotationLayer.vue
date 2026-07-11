@@ -33,7 +33,7 @@
           {{ idx + 1 }}
         </div>
         <div v-if="mode === 'hand'" class="absolute -top-2 -right-2 hidden group-hover:block">
-          <button class="w-5 h-5 bg-white rounded-full shadow text-[10px] border hover:bg-gray-100" @click.stop="$emit('edit', a)">✎</button>
+          <button class="w-5 h-5 bg-[var(--c-surface)] rounded-full shadow-soft text-[10px] border border-[var(--c-border)] hover:bg-[var(--c-surface-hover)] transition-colors" @click.stop="$emit('edit', a)">✎</button>
         </div>
       </div>
     </div>

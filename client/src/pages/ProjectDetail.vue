@@ -221,7 +221,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useProjectStore } from '../stores/projectStore'
 import { useVersionStore } from '../stores/versionStore'
 import { useAnnotationStore } from '../stores/annotationStore'

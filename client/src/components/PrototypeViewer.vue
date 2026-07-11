@@ -1,6 +1,6 @@
 <template>
   <div class="flex-1 overflow-auto relative" ref="container">
-    <div v-if="!version" class="flex items-center justify-center h-full text-gray-400 text-sm">
+    <div v-if="!version" class="flex items-center justify-center h-full text-[var(--c-text-muted)] text-sm">
       暂无版本，请上传 HTML 文件
     </div>
     <div v-else class="relative" :style="{ width: containerWidth + 'px' }">

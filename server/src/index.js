@@ -34,6 +34,9 @@ app.use('/api', folderRoutes);
 import prototypeRoutes from './routes/prototypes.js';
 app.use('/api', prototypeRoutes);
 
+import aiRoutes from './routes/ai.js';
+app.use('/api', aiRoutes);
+
 // 生产环境静态文件服务
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));

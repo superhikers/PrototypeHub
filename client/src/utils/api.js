@@ -1,4 +1,5 @@
 const BASE_URL = '/api'
+export { BASE_URL }
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {

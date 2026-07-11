@@ -5,12 +5,12 @@
       'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
       sizeClasses[size],
       variantClasses[variant],
-      (loading) ? 'relative !text-transparent' : ''
+      loading ? 'relative !text-transparent' : ''
     ]"
     :disabled="disabled || loading"
     @click="$emit('click', $event)"
   >
-    <span v-if="loading" class="absolute inset-0 flex items-center justify-center !text-current">
+    <span v-if="loading" class="absolute inset-0 flex items-center justify-center">
       <svg class="animate-spin h-4 w-4 text-current" viewBox="0 0 24 24" fill="none">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -21,6 +21,23 @@
 </template>
 
 <script setup>
+const sizeClasses = {
+  sm: 'px-3 py-1.5 text-sm rounded-[var(--radius-sm)]',
+  md: 'px-4 py-2 text-sm rounded-[var(--radius-md)]',
+  lg: 'px-6 py-3 text-base rounded-[var(--radius-md)]',
+}
+
+const variantClasses = {
+  primary:
+    'bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-primary-stop)] text-white shadow-soft hover:shadow-card hover:-translate-y-0.5 active:translate-y-0 active:shadow-soft',
+  secondary:
+    'bg-[var(--c-surface)] text-[var(--c-text)] border border-[var(--c-border)] shadow-soft hover:bg-[var(--c-surface-hover)] hover:border-[var(--c-text-muted)] active:bg-[var(--c-surface)]',
+  ghost:
+    'text-[var(--c-text-secondary)] hover:text-[var(--c-text)] hover:bg-[var(--c-surface-hover)]',
+  danger:
+    'bg-[var(--c-danger)] text-white shadow-soft hover:shadow-card hover:-translate-y-0.5 active:translate-y-0',
+}
+
 defineProps({
   variant: { type: String, default: 'primary' },
   size: { type: String, default: 'md' },
@@ -30,9 +47,3 @@ defineProps({
 
 defineEmits(['click'])
 </script>
-
-<style scoped>
-.size-sm { padding: 0.375rem 0.75rem; font-size: 0.875rem; border-radius: var(--radius-sm); }
-.size-md { padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: var(--radius-md); }
-.size-lg { padding: 0.75rem 1.5rem; font-size: 1rem; border-radius: var(--radius-md); }
-</style>

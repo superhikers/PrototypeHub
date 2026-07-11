@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia'
 import { getAuthor } from '../utils/author'
 
+function loadDarkMode() {
+  const saved = localStorage.getItem('darkMode')
+  if (saved !== null) return saved === 'true'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 export const useUiStore = defineStore('ui', {
   state: () => ({
-    resolution: 'full',  // 'full' | 'desktop' | 'tablet' | 'mobile'
+    resolution: 'full',
     author: getAuthor(),
+    darkMode: loadDarkMode(),
   }),
   getters: {
     resolutionWidth: (state) => {
@@ -12,7 +19,7 @@ export const useUiStore = defineStore('ui', {
         case 'desktop': return 1440
         case 'tablet': return 768
         case 'mobile': return 375
-        default: return null  // full width
+        default: return null
       }
     },
     resolutionLabel: (state) => {
@@ -27,5 +34,9 @@ export const useUiStore = defineStore('ui', {
   actions: {
     setResolution(res) { this.resolution = res },
     setAuthor(name) { this.author = name },
+    toggleDarkMode() {
+      this.darkMode = !this.darkMode
+      localStorage.setItem('darkMode', this.darkMode)
+    },
   },
 })
